@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Agentic Frameworks</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #0f0f1a; color: #e0e0f0; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a1a3e 0%, #2d1b69 50%, #1a1a3e 100%);
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 2px solid #7c3aed44;
+  }
+  header h1 { font-size: 2.2rem; color: #c084fc; letter-spacing: 2px; }
+  header p { color: #94a3b8; margin-top: 8px; font-size: 1rem; }
+
+  nav {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    justify-content: center; padding: 20px;
+    background: #12122a; border-bottom: 1px solid #1e1e40;
+    position: sticky; top: 0; z-index: 100;
+  }
+  nav button {
+    padding: 7px 14px; border-radius: 20px; border: 1px solid #7c3aed55;
+    background: #1e1e40; color: #c084fc; cursor: pointer;
+    font-size: 0.78rem; transition: all 0.2s;
+  }
+  nav button:hover, nav button.active { background: #7c3aed; color: #fff; border-color: #7c3aed; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 30px 16px 60px; }
+
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  .card {
+    background: #16162e; border: 1px solid #2a2a50;
+    border-radius: 16px; padding: 28px; margin-bottom: 28px;
+  }
+  .card h2 { font-size: 1.4rem; color: #c084fc; margin-bottom: 6px; }
+  .card .tag {
+    display: inline-block; font-size: 0.7rem; padding: 3px 10px;
+    background: #7c3aed22; border: 1px solid #7c3aed55;
+    border-radius: 20px; color: #a78bfa; margin-bottom: 14px;
+  }
+  .card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 16px; }
+
+  /* Flow diagrams */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 18px 0; }
+  .node {
+    padding: 10px 16px; border-radius: 10px; font-size: 0.8rem;
+    font-weight: 600; text-align: center; min-width: 90px;
+    border: 2px solid transparent;
+  }
+  .node.purple { background: #2d1b69; border-color: #7c3aed; color: #c084fc; }
+  .node.blue   { background: #1e3a5f; border-color: #3b82f6; color: #93c5fd; }
+  .node.green  { background: #14532d; border-color: #22c55e; color: #86efac; }
+  .node.orange { background: #431407; border-color: #f97316; color: #fdba74; }
+  .node.red    { background: #450a0a; border-color: #ef4444; color: #fca5a5; }
+  .node.teal   { background: #134e4a; border-color: #14b8a6; color: #5eead4; }
+  .node.pink   { background: #4a044e; border-color: #e879f9; color: #f0abfc; }
+  .node.gray   { background: #1e1e30; border-color: #64748b; color: #94a3b8; }
+
+  .arrow { font-size: 1.2rem; color: #7c3aed; }
+  .arrow.loop { color: #f97316; }
+
+  .loop-back {
+    display: flex; align-items: center; justify-content: center;
+    margin: 4px 0; font-size: 0.75rem; color: #f97316;
+  }
+
+  /* Cycle diagram */
+  .cycle {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    margin: 18px 0; text-align: center;
+  }
+  .cycle-item {
+    padding: 14px 10px; border-radius: 12px; font-size: 0.8rem;
+    font-weight: 600;
+  }
+  .cycle-arrows {
+    display: flex; justify-content: center; align-items: center;
+    font-size: 1.4rem; color: #7c3aed; margin: 4px 0;
+  }
+
+  /* Multi-agent grid */
+  .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 18px 0; }
+  .agent-box {
+    padding: 14px; border-radius: 12px; text-align: center;
+    font-size: 0.78rem; font-weight: 600;
+  }
+
+  /* Tool cards */
+  .tool-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 14px 0; }
+  .tool-item {
+    padding: 12px 14px; border-radius: 10px; font-size: 0.8rem;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tool-icon { font-size: 1.2rem; }
+
+  /* Planning steps */
+  .plan-steps { margin: 16px 0; }
+  .plan-step {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid #1e1e40;
+  }
+  .plan-step:last-child { border-bottom: none; }
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #7c3aed; color: #fff; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  }
+  .step-content h4 { color: #c084fc; font-size: 0.85rem; margin-bottom: 3px; }
+  .step-content p { color: #64748b; font-size: 0.78rem; }
+
+  /* Comparison table */
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.82rem; }
+  th { background: #2d1b69; color: #c084fc; padding: 10px 12px; text-align: left; }
+  td { padding: 9px 12px; border-bottom: 1px solid #1e1e40; color: #94a3b8; }
+  tr:hover td { background: #1e1e40; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 0.7rem; font-weight: 600;
+  }
+  .badge.high { background: #14532d33; color: #86efac; border: 1px solid #22c55e44; }
+  .badge.med  { background: #431407aa; color: #fdba74; border: 1px solid #f9731644; }
+  .badge.low  { background: #450a0a44; color: #fca5a5; border: 1px solid #ef444444; }
+
+  /* Divider */
+  .divider { height: 1px; background: #2a2a50; margin: 20px 0; }
+
+  /* Highlight box */
+  .highlight {
+    background: #2d1b6922; border-left: 3px solid #7c3aed;
+    padding: 12px 16px; border-radius: 0 8px 8px 0;
+    font-size: 0.85rem; color: #a78bfa; margin: 14px 0;
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    .flow { gap: 4px; }
+    .node { min-width: 70px; font-size: 0.72rem; padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🤖 Claude Agentic Frameworks</h1>
+  <p>Visual guide to every major agentic pattern used with Claude</p>
+</header>
+
+<nav>
+  <button class="active" onclick="show('react')">⚙️ ReAct</button>
+  <button onclick="show('reflection')">🔄 Reflection</button>
+  <button onclick="show('tools')">🔧 Tool Use</button>
+  <button onclick="show('planning')">🗺️ Planning</button>
+  <button onclick="show('multiagent')">🕸️ Multi-Agent</button>
+  <button onclick="show('rag')">📚 RAG</button>
+  <button onclick="show('cot')">🧠 Chain-of-Thought</button>
+  <button onclick="show('subagent')">🔀 Subagent</button>
+  <button onclick="show('compare')">📊 Compare All</button>
+</nav>
+
+<main>
+
+<!-- ReAct -->
+<div id="react" class="section active">
+  <div class="card">
+    <h2>⚙️ ReAct — Reason + Act</h2>
+    <span class="tag">Core Loop Pattern</span>
+    <p>ReAct interleaves <strong>reasoning</strong> (thinking steps) with <strong>actions</strong> (tool calls or environment interactions). Claude thinks, acts, observes the result, then thinks again — forming a tight feedback loop.</p>
+
+    <div class="flow">
+      <div class="node purple">User Goal</div>
+      <div class="arrow">→</div>
+      <div class="node blue">Thought<br><small>What should I do?</small></div>
+      <div class="arrow">→</div>
+      <div class="node orange">Action<br><small>Call tool / API</small></div>
+      <div class="arrow">→</div>
+      <div class="node teal">Observation<br><small>Tool result</small></div>
+      <div class="arrow loop">↺</div>
+      <div class="node blue">Thought<br><small>What's next?</small></div>
+    </div>
+    <div class="loop-back">↑ Loop repeats until goal is complete ↑</div>
+
+    <div class="divider"></div>
+    <div class="flow" style="margin-top:14px;">
+      <div class="node teal">Final Answer</div>
+      <div class="arrow">←</div>
+      <div class="node green">Stop Condition<br><small>Goal met / max steps</small></div>
+    </div>
+
+    <div class="highlight">💡 ReAct is the backbone of most Claude agent loops. It prevents hallucination by grounding each step in real observations rather than imagination.</div>
+
+    <h3 style="color:#a78bfa; margin-top:18px; font-size:0.9rem;">Trace Example</h3>
+    <div class="plan-steps">
+      <div class="plan-step"><div class="step-num">T</div><div class="step-content"><h4>Thought</h4><p>"I need to find today's weather in Paris. I'll call the weather API."</p></div></div>
+      <div class="plan-step"><div class="step-num">A</div><div class="step-content"><h4>Action</h4><p>weather_tool(city="Paris")</p></div></div>
+      <div class="plan-step"><div class="step-num">O</div><div class="step-content"><h4>Observation</h4><p>{"temp": "18°C", "condition": "Partly cloudy"}</p></div></div>
+      <div class="plan-step"><div class="step-num">T</div><div class="step-content"><h4>Thought</h4><p>"I have the result. I can now answer the user."</p></div></div>
+      <div class="plan-step"><div class="step-num">✓</div><div class="step-content"><h4>Final Answer</h4><p>"It's 18°C and partly cloudy in Paris today."</p></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Reflection -->
+<div id="reflection" class="section">
+  <div class="card">
+    <h2>🔄 Reflection / Self-Critique</h2>
+    <span class="tag">Quality Improvement Loop</span>
+    <p>Claude generates an output, then <strong>critiques its own work</strong>, identifies flaws, and revises. This loop can run for N iterations or until quality criteria are met.</p>
+
+    <div class="cycle">
+      <div class="cycle-item node blue">📝 Generate<br>Initial Output</div>
+      <div class="cycle-arrows">→</div>
+      <div class="cycle-item node orange">🔍 Self-Critique<br>Find Issues</div>
+      <div class="cycle-arrows" style="grid-column:1/-1;">↓</div>
+      <div class="cycle-item node green">✅ Final Output<br>(Quality Met)</div>
+      <div class="cycle-arrows">←</div>
+      <div class="cycle-item node purple">✏️ Revise &<br>Improve</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; margin-top:14px; font-size:0.9rem;">Reflection Types</h3>
+    <div class="tool-list">
+      <div class="tool-item" style="background:#1e3a5f22; border:1px solid #3b82f644;">
+        <div class="tool-icon">💬</div>
+        <div><strong style="color:#93c5fd;">Self-Reflection</strong><br><span style="color:#64748b;font-size:0.72rem;">Single model critiques itself</span></div>
+      </div>
+      <div class="tool-item" style="background:#2d1b6922; border:1px solid #7c3aed44;">
+        <div class="tool-icon">👥</div>
+        <div><strong style="color:#c084fc;">Adversarial</strong><br><span style="color:#64748b;font-size:0.72rem;">Critic agent attacks generator</span></div>
+      </div>
+      <div class="tool-item" style="background:#14532d22; border:1px solid #22c55e44;">
+        <div class="tool-icon">✔️</div>
+        <div><strong style="color:#86efac;">Constitutional</strong><br><span style="color:#64748b;font-size:0.72rem;">Check against rules/principles</span></div>
+      </div>
+      <div class="tool-item" style="background:#43140722; border:1px solid #f9731644;">
+        <div class="tool-icon">🧪</div>
+        <div><strong style="color:#fdba74;">Test-Based</strong><br><span style="color:#64748b;font-size:0.72rem;">Run code/tests, reflect on failures</span></div>
+      </div>
+    </div>
+
+    <div class="highlight">💡 Reflexion (a variant) adds long-term memory so past failure traces inform future attempts — like an agent that "learns from mistakes."</div>
+  </div>
+</div>
+
+<!-- Tool Use -->
+<div id="tools" class="section">
+  <div class="card">
+    <h2>🔧 Tool Use / Function Calling</h2>
+    <span class="tag">Action Primitive</span>
+    <p>Claude can call external tools defined as JSON schemas. It decides <em>when</em> and <em>how</em> to use each tool based on context. Tool results are fed back as observations.</p>
+
+    <div class="flow">
+      <div class="node purple">Claude Reasoning</div>
+      <div class="arrow">→</div>
+      <div class="node orange">tool_call{<br>name, args}</div>
+      <div class="arrow">→</div>
+      <div class="node gray">Tool Executor</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; margin: 14px 0 10px; font-size:0.9rem;">Common Tool Categories</h3>
+    <div class="tool-list">
+      <div class="tool-item" style="background:#14532d22;border:1px solid #22c55e44;"><div class="tool-icon">🔍</div><div style="color:#86efac;">Search & Retrieval<br><span style="color:#64748b;font-size:0.7rem;">Web, Vector DB, SQL</span></div></div>
+      <div class="tool-item" style="background:#1e3a5f22;border:1px solid #3b82f644;"><div class="tool-icon">💻</div><div style="color:#93c5fd;">Code Execution<br><span style="color:#64748b;font-size:0.7rem;">Python, bash, sandbox</span></div></div>
+      <div class="tool-item" style="background:#43140722;border:1px solid #f9731644;"><div class="tool-icon">🌐</div><div style="color:#fdba74;">API Calls<br><span style="color:#64748b;font-size:0.7rem;">REST, GraphQL, MCP</span></div></div>
+      <div class="tool-item" style="background:#2d1b6922;border:1px solid #7c3aed44;"><div class="tool-icon">📂</div><div style="color:#c084fc;">File I/O<br><span style="color:#64748b;font-size:0.7rem;">Read/write/parse files</span></div></div>
+      <div class="tool-item" style="background:#4a044e22;border:1px solid #e879f944;"><div class="tool-icon">🧮</div><div style="color:#f0abfc;">Calculators<br><span style="color:#64748b;font-size:0.7rem;">Math, unit conversion</span></div></div>
+      <div class="tool-item" style="background:#134e4a22;border:1px solid #14b8a644;"><div class="tool-icon">🗄️</div><div style="color:#5eead4;">Memory Tools<br><span style="color:#64748b;font-size:0.7rem;">Store, retrieve, update</span></div></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; margin: 14px 0 10px; font-size:0.9rem;">Parallel vs Sequential</h3>
+    <div class="flow">
+      <div class="node teal">Parallel<br><small>tool_A + tool_B<br>simultaneously</small></div>
+      <div class="arrow" style="margin:0 20px;">vs</div>
+      <div class="node purple">Sequential<br><small>tool_A → result<br>→ tool_B</small></div>
+    </div>
+    <div class="highlight">💡 Claude's tool use is MCP-compatible — connect to Google Drive, Gmail, Slack, GitHub, and hundreds more services natively.</div>
+  </div>
+</div>
+
+<!-- Planning -->
+<div id="planning" class="section">
+  <div class="card">
+    <h2>🗺️ Planning Frameworks</h2>
+    <span class="tag">Goal Decomposition</span>
+    <p>Rather than acting immediately, planning agents first decompose the goal into a structured plan, then execute steps — sometimes dynamically replanning when steps fail.</p>
+
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin-bottom:12px;">📋 Plan-and-Execute Pattern</h3>
+    <div class="plan-steps">
+      <div class="plan-step"><div class="step-num">1</div><div class="step-content"><h4>Goal Intake</h4><p>Receive high-level task from user</p></div></div>
+      <div class="plan-step"><div class="step-num">2</div><div class="step-content"><h4>Planner</h4><p>Decompose into ordered subtasks [T1, T2, T3…]</p></div></div>
+      <div class="plan-step"><div class="step-num">3</div><div class="step-content"><h4>Executor</h4><p>Run each subtask using ReAct + Tools</p></div></div>
+      <div class="plan-step"><div class="step-num">4</div><div class="step-content"><h4>Replan (if needed)</h4><p>If step fails → re-evaluate and update remaining plan</p></div></div>
+      <div class="plan-step"><div class="step-num">5</div><div class="step-content"><h4>Synthesize</h4><p>Aggregate results into final answer</p></div></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin: 14px 0 12px;">🌳 Tree-of-Thoughts (ToT)</h3>
+    <p style="font-size:0.82rem; color:#64748b; margin-bottom:12px;">Explore multiple reasoning branches in parallel, evaluate each, and pick the best path.</p>
+    <div style="text-align:center; font-size:0.8rem; line-height:2;">
+      <div class="node purple" style="display:inline-block;">Goal</div><br>
+      <span style="color:#7c3aed;">↙ &nbsp;&nbsp;&nbsp;&nbsp;↓ &nbsp;&nbsp;&nbsp;&nbsp;↘</span><br>
+      <div style="display:inline-flex; gap:10px; margin:4px 0;">
+        <div class="node blue" style="font-size:0.72rem;">Path A</div>
+        <div class="node orange" style="font-size:0.72rem;">Path B</div>
+        <div class="node teal" style="font-size:0.72rem;">Path C</div>
+      </div><br>
+      <span style="color:#22c55e; font-size:0.9rem;">↓ Evaluate & Score ↓</span><br>
+      <div class="node green" style="display:inline-block; margin-top:6px;">Best Path → Execute</div>
+    </div>
+
+    <div class="highlight" style="margin-top:18px;">💡 Dynamic replanning makes Claude resilient — if the world changes mid-task, it doesn't fail blindly; it reasons about the new situation.</div>
+  </div>
+</div>
+
+<!-- Multi-Agent -->
+<div id="multiagent" class="section">
+  <div class="card">
+    <h2>🕸️ Multi-Agent Systems</h2>
+    <span class="tag">Agent Orchestration</span>
+    <p>Multiple specialized Claude agents collaborate. One <strong>Orchestrator</strong> coordinates; specialized <strong>Subagents</strong> handle specific domains. Agents communicate via messages.</p>
+
+    <div style="text-align:center; margin:20px 0;">
+      <div class="node purple" style="display:inline-block; padding:14px 24px; font-size:0.9rem;">🎯 Orchestrator<br><small>Claude Master Agent</small></div>
+      <div style="color:#7c3aed; font-size:1.5rem; margin:8px 0;">↓ &nbsp; ↓ &nbsp; ↓ &nbsp; ↓</div>
+      <div class="agent-grid" style="max-width:600px; margin:0 auto;">
+        <div class="agent-box node blue">🔍 Research<br>Agent</div>
+        <div class="agent-box node orange">💻 Coder<br>Agent</div>
+        <div class="agent-box node green">✍️ Writer<br>Agent</div>
+        <div class="agent-box node teal">🧪 Validator<br>Agent</div>
+      </div>
+      <div style="color:#7c3aed; font-size:1.5rem; margin:8px 0;">↑ Results ↑</div>
+      <div class="node pink" style="display:inline-block;">📦 Synthesized Output</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:14px 0 12px;">Topology Types</h3>
+    <div class="tool-list">
+      <div class="tool-item" style="background:#2d1b6922;border:1px solid #7c3aed44;">
+        <div class="tool-icon">⭐</div>
+        <div><strong style="color:#c084fc;">Hub-and-Spoke</strong><br><span style="color:#64748b;font-size:0.72rem;">Central orchestrator delegates to all agents</span></div>
+      </div>
+      <div class="tool-item" style="background:#1e3a5f22;border:1px solid #3b82f644;">
+        <div class="tool-icon">🔗</div>
+        <div><strong style="color:#93c5fd;">Pipeline</strong><br><span style="color:#64748b;font-size:0.72rem;">A → B → C sequential handoff</span></div>
+      </div>
+      <div class="tool-item" style="background:#14532d22;border:1px solid #22c55e44;">
+        <div class="tool-icon">🔁</div>
+        <div><strong style="color:#86efac;">Peer-to-Peer</strong><br><span style="color:#64748b;font-size:0.72rem;">Agents collaborate freely</span></div>
+      </div>
+      <div class="tool-item" style="background:#43140722;border:1px solid #f9731644;">
+        <div class="tool-icon">🏆</div>
+        <div><strong style="color:#fdba74;">Debate/Vote</strong><br><span style="color:#64748b;font-size:0.72rem;">Agents propose, majority wins</span></div>
+      </div>
+    </div>
+    <div class="highlight">💡 Claude's multi-agent systems support long-horizon tasks beyond a single context window by distributing work across agents with specialized contexts.</div>
+  </div>
+</div>
+
+<!-- RAG -->
+<div id="rag" class="section">
+  <div class="card">
+    <h2>📚 RAG — Retrieval-Augmented Generation</h2>
+    <span class="tag">Memory & Knowledge Pattern</span>
+    <p>Instead of relying solely on trained weights, Claude <strong>retrieves relevant documents</strong> from a knowledge base at runtime, grounding answers in real data.</p>
+
+    <div class="flow" style="flex-wrap:wrap;">
+      <div class="node purple">User Query</div>
+      <div class="arrow">→</div>
+      <div class="node teal">Embed Query<br><small>Vector encoding</small></div>
+      <div class="arrow">→</div>
+      <div class="node blue">Vector Search<br><small>Find top-K docs</small></div>
+      <div class="arrow">→</div>
+      <div class="node orange">Inject Context<br><small>Into prompt</small></div>
+      <div class="arrow">→</div>
+      <div class="node green">Claude Generates<br><small>Grounded answer</small></div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:14px 0 12px;">RAG Variants</h3>
+    <div class="plan-steps">
+      <div class="plan-step"><div class="step-num" style="background:#3b82f6;">N</div><div class="step-content"><h4>Naive RAG</h4><p>Simple retrieve → generate pipeline</p></div></div>
+      <div class="plan-step"><div class="step-num" style="background:#22c55e;">A</div><div class="step-content"><h4>Agentic RAG</h4><p>Claude decides when and what to retrieve dynamically</p></div></div>
+      <div class="plan-step"><div class="step-num" style="background:#f97316;">H</div><div class="step-content"><h4>Hybrid RAG</h4><p>Combine vector search + keyword (BM25) retrieval</p></div></div>
+      <div class="plan-step"><div class="step-num" style="background:#e879f9;">G</div><div class="step-content"><h4>Graph RAG</h4><p>Knowledge graphs + semantic search for relational reasoning</p></div></div>
+    </div>
+    <div class="highlight">💡 Agentic RAG + Claude = Claude actively decides which documents it needs, queries multiple sources, and synthesizes cross-document insights.</div>
+  </div>
+</div>
+
+<!-- Chain of Thought -->
+<div id="cot" class="section">
+  <div class="card">
+    <h2>🧠 Chain-of-Thought & Extended Thinking</h2>
+    <span class="tag">Reasoning Enhancement</span>
+    <p>Claude reasons step-by-step in a <strong>scratchpad</strong> before committing to a final answer. Extended Thinking gives Claude a private internal reasoning budget.</p>
+
+    <div class="flow">
+      <div class="node purple">Problem</div>
+      <div class="arrow">→</div>
+      <div class="node blue">Step 1<br><small>Understand</small></div>
+      <div class="arrow">→</div>
+      <div class="node teal">Step 2<br><small>Break down</small></div>
+      <div class="arrow">→</div>
+      <div class="node orange">Step 3<br><small>Calculate</small></div>
+      <div class="arrow">→</div>
+      <div class="node green">Answer</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="tool-list" style="margin-top:16px;">
+      <div class="tool-item" style="background:#1e3a5f22;border:1px solid #3b82f644;">
+        <div class="tool-icon">📝</div>
+        <div><strong style="color:#93c5fd;">Zero-Shot CoT</strong><br><span style="color:#64748b;font-size:0.72rem;">"Let's think step by step"</span></div>
+      </div>
+      <div class="tool-item" style="background:#2d1b6922;border:1px solid #7c3aed44;">
+        <div class="tool-icon">📌</div>
+        <div><strong style="color:#c084fc;">Few-Shot CoT</strong><br><span style="color:#64748b;font-size:0.72rem;">Examples with reasoning shown</span></div>
+      </div>
+      <div class="tool-item" style="background:#14532d22;border:1px solid #22c55e44;">
+        <div class="tool-icon">🧬</div>
+        <div><strong style="color:#86efac;">Extended Thinking</strong><br><span style="color:#64748b;font-size:0.72rem;">Internal &lt;thinking&gt; budget tokens</span></div>
+      </div>
+      <div class="tool-item" style="background:#43140722;border:1px solid #f9731644;">
+        <div class="tool-icon">🗂️</div>
+        <div><strong style="color:#fdba74;">Scratchpad Mode</strong><br><span style="color:#64748b;font-size:0.72rem;">Visible reasoning before answer</span></div>
+      </div>
+    </div>
+    <div class="highlight">💡 Claude's Extended Thinking allocates a separate token budget for private reasoning — like a scratch paper that users don't see but greatly improves accuracy.</div>
+  </div>
+</div>
+
+<!-- Subagent / Delegation -->
+<div id="subagent" class="section">
+  <div class="card">
+    <h2>🔀 Subagent & Delegation Patterns</h2>
+    <span class="tag">Specialization & Parallelism</span>
+    <p>Additional agentic patterns that don't fit neatly elsewhere — including <strong>Prompt Chaining</strong>, <strong>Routing</strong>, <strong>Parallelization</strong>, and <strong>Human-in-the-Loop</strong>.</p>
+
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:16px 0 10px;">🔗 Prompt Chaining</h3>
+    <div class="flow">
+      <div class="node purple">Task</div>
+      <div class="arrow">→</div>
+      <div class="node blue">Prompt 1<br><small>Summarize</small></div>
+      <div class="arrow">→</div>
+      <div class="node teal">Prompt 2<br><small>Translate</small></div>
+      <div class="arrow">→</div>
+      <div class="node green">Prompt 3<br><small>Format</small></div>
+      <div class="arrow">→</div>
+      <div class="node orange">Output</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:14px 0 10px;">🚦 Routing</h3>
+    <div style="text-align:center; margin:10px 0 16px;">
+      <div class="node purple" style="display:inline-block;">Incoming<br>Request</div>
+      <div style="color:#7c3aed; font-size:1.5rem; margin:8px 0;">↓</div>
+      <div class="node blue" style="display:inline-block;">Router<br>Classifier</div>
+      <div style="color:#7c3aed; font-size:1.2rem; margin:8px 0;">↙ &nbsp; ↓ &nbsp; ↘</div>
+      <div style="display:inline-flex; gap:10px;">
+        <div class="node green" style="font-size:0.72rem;">Code<br>Agent</div>
+        <div class="node orange" style="font-size:0.72rem;">Chat<br>Agent</div>
+        <div class="node pink" style="font-size:0.72rem;">Data<br>Agent</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:14px 0 10px;">⚡ Parallelization</h3>
+    <div class="flow">
+      <div class="node purple">Task</div>
+      <div class="arrow">→</div>
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div class="node blue" style="font-size:0.72rem;">Subtask A</div>
+        <div class="node teal" style="font-size:0.72rem;">Subtask B</div>
+        <div class="node orange" style="font-size:0.72rem;">Subtask C</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node green">Merge<br>Results</div>
+    </div>
+
+    <div class="divider"></div>
+    <h3 style="color:#a78bfa; font-size:0.9rem; margin:14px 0 10px;">👤 Human-in-the-Loop (HITL)</h3>
+    <div class="flow">
+      <div class="node blue">Agent<br>Runs</div>
+      <div class="arrow">→</div>
+      <div class="node red">⚠️ Checkpoint<br><small>Needs approval</small></div>
+      <div class="arrow">→</div>
+      <div class="node orange">Human<br>Reviews</div>
+      <div class="arrow">→</div>
+      <div class="node green">Approved<br>→ Continue</div>
+    </div>
+    <div class="highlight">💡 HITL is critical for irreversible or high-stakes actions (e.g. sending emails, writing to databases, making payments).</div>
+  </div>
+</div>
+
+<!-- Compare All -->
+<div id="compare" class="section">
+  <div class="card">
+    <h2>📊 Framework Comparison</h2>
+    <span class="tag">At a Glance</span>
+    <table>
+      <thead>
+        <tr><th>Framework</th><th>Core Idea</th><th>Complexity</th><th>Best For</th><th>Claude Support</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>⚙️ ReAct</td><td>Reason-Act-Observe loop</td><td><span class="badge med">Medium</span></td><td>Tool-using agents</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>🔄 Reflection</td><td>Self-critique & revise</td><td><span class="badge med">Medium</span></td><td>Quality-critical outputs</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>🔧 Tool Use</td><td>Call external functions</td><td><span class="badge low">Low</span></td><td>Any action-taking agent</td><td><span class="badge high">Native + MCP</span></td></tr>
+        <tr><td>🗺️ Planning</td><td>Decompose then execute</td><td><span class="badge high">High</span></td><td>Complex multi-step tasks</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>🕸️ Multi-Agent</td><td>Specialized agent network</td><td><span class="badge high">High</span></td><td>Long-horizon, parallel work</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>📚 RAG</td><td>Retrieve-then-generate</td><td><span class="badge med">Medium</span></td><td>Knowledge-intensive tasks</td><td><span class="badge high">Via tools</span></td></tr>
+        <tr><td>🧠 CoT / Thinking</td><td>Step-by-step reasoning</td><td><span class="badge low">Low</span></td><td>Math, logic, analysis</td><td><span class="badge high">Extended Thinking</span></td></tr>
+        <tr><td>🔗 Prompt Chaining</td><td>Sequential prompt steps</td><td><span class="badge low">Low</span></td><td>Deterministic pipelines</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>🚦 Routing</td><td>Classify → delegate</td><td><span class="badge low">Low</span></td><td>Multi-domain apps</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>⚡ Parallelization</td><td>Run subtasks in parallel</td><td><span class="badge med">Medium</span></td><td>Speed-critical tasks</td><td><span class="badge high">Via multi-agent</span></td></tr>
+        <tr><td>👤 HITL</td><td>Human approval gates</td><td><span class="badge med">Medium</span></td><td>High-stakes actions</td><td><span class="badge high">Native</span></td></tr>
+        <tr><td>🌳 Tree-of-Thoughts</td><td>Explore reasoning branches</td><td><span class="badge high">High</span></td><td>Complex reasoning tasks</td><td><span class="badge med">Prompt-based</span></td></tr>
+      </tbody>
+    </table>
+    <div class="highlight" style="margin-top:20px;">💡 Real-world agents combine these patterns. A typical production Claude agent uses: ReAct + Tool Use + Planning + RAG + HITL checkpoints.</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+</body>
+</html>
